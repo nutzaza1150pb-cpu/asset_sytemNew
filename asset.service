@@ -1,0 +1,36 @@
+# ไฟล์ systemd สำหรับให้ระบบครุภัณฑ์ (Streamlit) เปิดตลอดและรันเองเมื่อเครื่องรีสตาร์ต
+#
+# วิธีใช้ (บนเซิร์ฟเวอร์ Linux):
+#   1) แก้ 3 จุดที่มีคำว่า "แก้ตรงนี้" ให้ตรงกับเครื่องของคุณ
+#   2) คัดลอกไฟล์ไปที่ /etc/systemd/system/asset.service
+#        sudo cp asset.service /etc/systemd/system/asset.service
+#   3) สั่งให้ระบบโหลดและเปิดใช้งาน
+#        sudo systemctl daemon-reload
+#        sudo systemctl enable --now asset
+#   4) ตรวจสถานะ / ดู log
+#        sudo systemctl status asset
+#        journalctl -u asset -f
+
+[Unit]
+Description=Asset System (Streamlit)
+After=network.target
+
+[Service]
+# แก้ตรงนี้ 1: ชื่อผู้ใช้ Linux ที่จะใช้รันแอป (ไม่ควรใช้ root)
+User=your_linux_user
+
+# แก้ตรงนี้ 2: โฟลเดอร์ที่โหลดโปรเจกต์ไว้ (ที่มี app.py)
+WorkingDirectory=/home/your_linux_user/asset_sytemNew
+
+# แก้ตรงนี้ 3: พาธของ streamlit ใน venv (อยู่ในโฟลเดอร์โปรเจกต์เดียวกัน)
+ExecStart=/home/your_linux_user/asset_sytemNew/venv/bin/streamlit run app.py \
+    --server.port 8501 \
+    --server.address 0.0.0.0 \
+    --server.headless true
+
+# ถ้าแอปล่มหรือหยุด ให้เปิดใหม่เองหลังรอ 5 วินาที
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
